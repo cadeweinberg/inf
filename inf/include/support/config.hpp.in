@@ -1,0 +1,31 @@
+// Copyright (C) 2024 Cade Weinberg
+//
+// This file is part of inf.
+//
+// inf is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// inf is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with inf.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef INF_SUPPORT_CONFIG_HPP
+#define INF_SUPPORT_CONFIG_HPP
+
+#define INF_VERSION_MAJOR ${INF_VERSION_MAJOR}
+#define INF_VERSION_MINOR ${INF_VERSION_MINOR}
+#define INF_VERSION_PATCH ${INF_VERSION_PATCH}
+
+#cmakedefine INF_HOST_SYSTEM_LINUX
+#cmakedefine INF_HOST_SYSTEM_WINDOWS
+#cmakedefine INF_HOST_SYSTEM_APPLE
+#cmakedefine INF_HOST_ARCH_x86_64
+
+#define INF_VERSION_STRING "${INF_VERSION_STRING}"
+
+#endif // !INF_SUPPORT_CONFIG_HPP
