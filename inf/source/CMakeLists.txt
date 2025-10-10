@@ -43,15 +43,22 @@ configure_file(
     ${INF_INCLUDE_DIR}/support/config.hpp.in
     ${INF_INCLUDE_DIR}/support/config.hpp
 )
-#[[
-set(INF_COMMON_SOURCE_FILES
 
+add_custom_command(
+    OUTPUT ${INF_SOURCE_DIR}/core/lex.cpp
+    COMMAND re2c --output ${INF_SOURCE_DIR}/core/lex.cpp ${INF_SOURCE_DIR}/core/lex.re2c
+    DEPENDS ${INF_SOURCE_DIR}/core/lex.re2c
+)
+
+set(INF_COMMON_SOURCE_FILES
+  ${INF_SOURCE_DIR}/core/lex.cpp
+  ${INF_SOURCE_DIR}/core/parse.cpp
 )
 add_library(inf_common ${INF_COMMON_SOURCE_FILES})
 target_include_directories(inf_common PUBLIC ${INF_INCLUDE_DIR})
 target_compile_options(inf_common PUBLIC ${INF_COMPILE_OPTIONS})
 target_link_options(inf_common PUBLIC ${INF_LINK_OPTIONS})
-target_link_libraries(inf_common PUBLIC ${INF_DEPS})]]
+target_link_libraries(inf_common PUBLIC ${INF_DEPS})
 
 add_executable(inf
     ${INF_SOURCE_DIR}/main.cpp
@@ -59,7 +66,21 @@ add_executable(inf
 target_include_directories(inf PRIVATE ${INF_INCLUDE_DIR})
 target_compile_options(inf PRIVATE ${INF_COMPILE_OPTIONS})
 target_link_options(inf PRIVATE ${INF_LINK_OPTIONS})
-target_link_libraries(inf PRIVATE)
+target_link_libraries(inf PRIVATE inf_common)
+
+
+add_executable(inf_test
+    ${INF_TEST_DIR}/lex.cpp
+    ${INF_TEST_DIR}/main.cpp
+)
+target_include_directories(inf_test PRIVATE ${INF_INCLUDE_DIR})
+target_compile_options(inf_test PRIVATE ${INF_COMPILE_OPTIONS})
+target_link_options(inf_test PRIVATE ${INF_LINK_OPTIONS})
+target_link_libraries(inf_test PRIVATE inf_common)
+
+enable_testing()
+add_test(NAME lex COMMAND inf_test -t lex)
+
 
 
 

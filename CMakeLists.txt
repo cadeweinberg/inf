@@ -39,6 +39,8 @@ endif()
 
 set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 23)
+set(C_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 99)
 
 project(INF
     LANGUAGES C CXX ASM
@@ -76,15 +78,25 @@ else()
   set(INF_LINK_OPTIONS)
 endif()
 
-set(INF_DEPS)
+include(FetchContent)
+FetchContent_Declare(
+  Boost
+  GIT_REPOSITORY https://github.com/boostorg/boost.git
+  GIT_TAG ef7fea34711a189472893b88205b1dd3c275677b # release 1.89.0
+)
+
+FetchContent_MakeAvailable(Boost)
+
+set(INF_DEPS Boost::graph Boost::unit_test_framework)
 
 message(STATUS "Build: ${CMAKE_BUILD_TYPE}")
-message(STATUS "C compiler: ${CMAKE_C_COMPILER}")
+message(STATUS "C compiler: ${CMAKE_C_COMPILER_ID}")
 message(STATUS "C standard: ${CMAKE_C_STANDARD}")
+message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "C++ standard: ${CMAKE_CXX_STANDARD}")
 
 include(CTest)
 add_subdirectory(${INF_SOURCE_DIR})
-add_subdirectory(${INF_TEST_DIR})
 
 
 

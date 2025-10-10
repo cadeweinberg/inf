@@ -14,16 +14,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef INF_ENV_ERRORS_HPP
+#define INF_ENV_ERRORS_HPP
 
-#include <iostream>
-#include <exception>
+#include <vector>
 
-#include "support/config.hpp"
+#include "imr/error.hpp"
 
-int main() {
-    try {
-        std::cout << INF_VERSION_STRING << std::endl;
-    } catch (std::exception const &e) {
-        std::cerr << e.what() << "\n";
-    }
+namespace inf {
+class errors : public std::vector<error> {};
 }
+
+#endif // !INF_ENV_ERRORS_HPP

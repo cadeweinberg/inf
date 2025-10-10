@@ -1,0 +1,80 @@
+// Copyright (C) 2024 Cade Weinberg
+//
+// This file is part of inf.
+//
+// inf is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// inf is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with inf.  If not, see <http://www.gnu.org/licenses/>.
+
+#include <charconv>
+
+#include <boost/assert.hpp>
+
+#include "core/lex.hpp"
+#include "env/context.hpp"
+
+namespace inf {
+inf::token lexer::lex() {
+while (true) {
+        location_.step();
+        token                 = cursor;
+        /*!re2c
+            re2c:eof           = 0;
+            re2c:yyfill:enable = 0;
+            re2c:api           = generic;
+            re2c:api:style     = free-form;
+            re2c:encoding:utf8 = 1;
+            re2c:YYCTYPE       = char;
+            re2c:YYPEEK        = "*cursor";
+            re2c:YYSKIP        = "++cursor;";
+            re2c:YYBACKUP      = "marker = cursor;";
+            re2c:YYRESTORE     = "cursor = marker;";
+            re2c:YYLESSTHAN    = "limit - cursor < @@{len}";
+
+            integer = [0-9]+;
+            label = [_a-zA-Z][_a-zA-Z0-9]*;
+
+            * { return token::error(); }
+            $ { return token::end(); }
+
+            [\n\t\f\v ] { up(); continue; }
+
+            integer {
+                up();
+                int64_t integer = 0;
+                auto [ptr, ec] = std::from_chars(token,
+                                                 cursor,
+                                                 integer);
+
+                BOOST_ASSERT(ec == std::errc());
+                return token::integer(integer);
+            }
+
+            label {
+                up();
+                auto sv = ctx->string_intern({token, cursor});
+                return token::label(sv);
+            }
+
+            "(" { up(); return token::lparen(); }
+            ")" { up(); return token::rparen(); }
+            ";" { up(); return token::semicolon(); }
+            "+" { up(); return token::plus(); }
+            "-" { up(); return token::minus(); }
+            "*" { up(); return token::star(); }
+            "/" { up(); return token::fslash(); }
+            "%" { up(); return token::percent(); }
+        */
+    }
+}
+
+}

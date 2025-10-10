@@ -14,16 +14,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef INF_IMR_SSA_HPP
+#define INF_IMR_SSA_HPP
 
-#include <iostream>
-#include <exception>
+#include <cstdint>
 
-#include "support/config.hpp"
+namespace inf {
+struct ssa {
+    uint32_t index;
+};
+} // namespace inf
 
-int main() {
-    try {
-        std::cout << INF_VERSION_STRING << std::endl;
-    } catch (std::exception const &e) {
-        std::cerr << e.what() << "\n";
-    }
-}
+#endif // !INF_IMR_SSA_HPP

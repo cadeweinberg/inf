@@ -1,3 +1,12 @@
+# build directory
+[Bb]uild
+
+# clangd cache
+.cache
+
+# generated files
+config.hpp
+
 # Prerequisites
 *.d
 

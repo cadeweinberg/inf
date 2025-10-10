@@ -14,16 +14,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef INF_ENV_STRING_INTERNER_HPP
+#define INF_ENV_STRING_INTERNER_HPP
 
-#include <iostream>
-#include <exception>
+#include <unordered_set>
+#include <string>
 
-#include "support/config.hpp"
+namespace inf {
+class string_interner : public std::unordered_set<std::string> {};
+};
 
-int main() {
-    try {
-        std::cout << INF_VERSION_STRING << std::endl;
-    } catch (std::exception const &e) {
-        std::cerr << e.what() << "\n";
-    }
-}
+
+#endif // !INF_ENV_STRING_INTERNER_HPP

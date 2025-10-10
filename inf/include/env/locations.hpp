@@ -14,16 +14,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef INF_ENV_LOCATIONS_HPP
+#define INF_ENV_LOCATIONS_HPP
 
-#include <iostream>
-#include <exception>
+#include <vector>
 
-#include "support/config.hpp"
+#include "imr/location.hpp"
 
-int main() {
-    try {
-        std::cout << INF_VERSION_STRING << std::endl;
-    } catch (std::exception const &e) {
-        std::cerr << e.what() << "\n";
-    }
+namespace inf {
+class locations : public std::vector<location> {};
 }
+
+#endif // INF_ENV_LOCATIONS_HPP

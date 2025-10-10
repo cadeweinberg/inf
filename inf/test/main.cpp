@@ -15,15 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
-#include <exception>
+#define BOOST_TEST_MODULE inf test
+#include <boost/test/unit_test.hpp>
 
-#include "support/config.hpp"
-
-int main() {
-    try {
-        std::cout << INF_VERSION_STRING << std::endl;
-    } catch (std::exception const &e) {
-        std::cerr << e.what() << "\n";
-    }
-}

@@ -14,16 +14,21 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef INF_ENV_SYMBOL_TABLE_HPP
+#define INF_ENV_SYMBOL_TABLE_HPP
 
-#include <iostream>
-#include <exception>
+#include <unordered_map>
 
-#include "support/config.hpp"
+#include "imr/label.hpp"
+#include "imr/value.hpp"
 
-int main() {
-    try {
-        std::cout << INF_VERSION_STRING << std::endl;
-    } catch (std::exception const &e) {
-        std::cerr << e.what() << "\n";
-    }
-}
+namespace inf {
+struct symbol {
+    label label;
+    value value_;
+};
+
+class symbol_table : public std::unordered_map<label, symbol> {};
+};
+
+#endif // INF_ENV_SYMBOL_TABLE_HPP
