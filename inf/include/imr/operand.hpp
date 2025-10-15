@@ -20,41 +20,60 @@
 #include <cstdint>
 #include <variant>
 
+#include "imr/error.hpp"
 #include "imr/label.hpp"
 #include "imr/ssa.hpp"
-#include "imr/error.hpp"
 
 namespace inf {
-namespace detail {
-    using operand_variant = std::variant<std::monostate,
-    ssa,
-    label,
-    uint64_t,
-    uint32_t,
-    uint16_t,
-    uint8_t,
-    int64_t,
-    int32_t,
-    int16_t,
-    int8_t,
-    error::tag>;
-}
+namespace detail {}
 
-struct operand : public detail::operand_variant {
-    operand() : detail::operand_variant(std::monostate{}) {}
+struct operand {
+    using variant = std::variant<std::monostate,
+                                 ssa,
+                                 label,
+                                 uint64_t,
+                                 uint32_t,
+                                 uint16_t,
+                                 uint8_t,
+                                 int64_t,
+                                 int32_t,
+                                 int16_t,
+                                 int8_t,
+                                 error::tag>;
 
-    template <class T> operand(T &&t) : detail::operand_variant(std::move(t)) {}
+    variant m_variant;
 
-    template <class T> bool is() const noexcept {
-        return std::holds_alternative<T>(*this);
+    operand() : m_variant(std::monostate{}) {}
+    operand(operand &o) : m_variant(o.m_variant) {}
+    operand(operand const &o) : m_variant(o.m_variant) {}
+    operand(operand &&o) : m_variant(std::move(o.m_variant)) {}
+    template <class T> operand(T &&t) : m_variant(std::move(t)) {}
+
+    operand &operator=(operand &other) {
+        m_variant = other.m_variant;
+        return *this;
     }
 
-    template <class T> T       &as() { return std::get<T>(*this); }
-    template <class T> T const &as() const { return std::get<T>(*this); }
+    operand &operator=(operand const &other) {
+        m_variant = other.m_variant;
+        return *this;
+    }
 
-    template <std::size_t I, class T> T &as() { return std::get<I>(*this); }
+    operand &operator=(operand &&other) {
+        m_variant = std::move(other.m_variant);
+        return *this;
+    }
+
+    template <class T> bool is() const noexcept {
+        return std::holds_alternative<T>(m_variant);
+    }
+
+    template <class T> T       &as() { return std::get<T>(m_variant); }
+    template <class T> T const &as() const { return std::get<T>(m_variant); }
+
+    template <std::size_t I, class T> T &as() { return std::get<I>(m_variant); }
     template <std::size_t I, class T> T const &as() const {
-        return std::get<I>(*this);
+        return std::get<I>(m_variant);
     }
 };
 } // namespace inf

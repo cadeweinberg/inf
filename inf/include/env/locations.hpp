@@ -23,6 +23,6 @@
 
 namespace inf {
 class locations : public std::vector<location> {};
-}
+} // namespace inf
 
 #endif // INF_ENV_LOCATIONS_HPP

@@ -51,6 +51,8 @@ add_custom_command(
 )
 
 set(INF_COMMON_SOURCE_FILES
+  ${INF_SOURCE_DIR}/core/cast.cpp
+  ${INF_SOURCE_DIR}/core/compile.cpp
   ${INF_SOURCE_DIR}/core/lex.cpp
   ${INF_SOURCE_DIR}/core/parse.cpp
 )
@@ -72,6 +74,7 @@ target_link_libraries(inf PRIVATE inf_common)
 add_executable(inf_test
     ${INF_TEST_DIR}/lex.cpp
     ${INF_TEST_DIR}/main.cpp
+    ${INF_TEST_DIR}/parse.cpp
 )
 target_include_directories(inf_test PRIVATE ${INF_INCLUDE_DIR})
 target_compile_options(inf_test PRIVATE ${INF_COMPILE_OPTIONS})
@@ -80,6 +83,7 @@ target_link_libraries(inf_test PRIVATE inf_common)
 
 enable_testing()
 add_test(NAME lex COMMAND inf_test -t lex)
+add_test(NAME parse COMMAND inf_test -t parse)
 
 
 

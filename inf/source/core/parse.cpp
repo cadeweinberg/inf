@@ -16,6 +16,7 @@
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <utility>
+#include <array>
 
 #include "core/compile.hpp"
 #include "core/parse.hpp"
@@ -35,14 +36,14 @@ operand parser::infix(precedence prec) {
     if (r.prefix == nullptr) { return fail("expected expression"); }
 
     operand result = (this->*r.prefix)();
-    if (result.is<error>()) { return result; }
+    if (result.is<error::tag>()) { return result; }
 
     while (true) {
         r = rule_of(token_);
         if (prec > r.prec) { break; }
 
         operand left = (this->*r.infix)(result);
-        if (left.is<error>()) { return left; }
+        if (left.is<error::tag>()) { return left; }
 
         result = left;
     }
@@ -65,7 +66,7 @@ operand parser::unop() {
     next();
 
     operand result = infix(precedence::unary);
-    if (result.is<error>()) { return result; }
+    if (result.is<error::tag>()) { return result; }
 
     switch (op.kind) {
     case token::kind::minus: return compile_neg(result, *ctx);
@@ -79,6 +80,9 @@ operand parser::binop(operand left) {
     next();
 
     operand result = infix(inc(rule.prec));
+    if (result.is<error::tag>()) {
+        return result;
+    }
 
     switch (op.kind) {
     case token::kind::plus:    return compile_add(left, result, *ctx);
@@ -109,7 +113,7 @@ operand parser::top() { return expression(); }
 // clang-format off
 // static
 parser::rule parser::rule_of(token token_) {
-    static parser::rule rules[] = {
+    static std::array<parser::rule, 12> rules = {{
         {nullptr,          nullptr,        parser::precedence::none}, // token::error
         {nullptr,          nullptr,        parser::precedence::none}, // token::end
         {&parser::integer, nullptr,        parser::precedence::primary}, // token::integer
@@ -122,9 +126,9 @@ parser::rule parser::rule_of(token token_) {
         {nullptr,          &parser::binop, parser::precedence::factor}, // token::star
         {nullptr,          &parser::binop, parser::precedence::factor}, // token::fslash
         {nullptr,          &parser::binop, parser::precedence::factor}, // token::percent
-    };
+    }};
 
-    return rules[std::to_underlying(token_.kind)];
+    return rules.at((size_t)std::to_underlying(token_.kind));
 }
 // clang-format on
 } // namespace inf

@@ -17,12 +17,11 @@
 #ifndef INF_ENV_STRING_INTERNER_HPP
 #define INF_ENV_STRING_INTERNER_HPP
 
-#include <unordered_set>
 #include <string>
+#include <unordered_set>
 
 namespace inf {
 class string_interner : public std::unordered_set<std::string> {};
-};
-
+}; // namespace inf
 
 #endif // !INF_ENV_STRING_INTERNER_HPP

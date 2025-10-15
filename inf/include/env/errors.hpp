@@ -23,6 +23,6 @@
 
 namespace inf {
 class errors : public std::vector<error> {};
-}
+} // namespace inf
 
 #endif // !INF_ENV_ERRORS_HPP

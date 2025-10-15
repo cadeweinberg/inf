@@ -90,6 +90,7 @@ class parser {
 
     void set_view(std::string_view view) { lexer_.set_view(view); }
     void set_path(detail::path path) { lexer_.set_path(path); }
+    void prime() { next(); }
     bool done() { return token_ == token::end(); }
     operand parse() { return top(); }
 };

@@ -17,28 +17,50 @@
 #ifndef INF_IMR_FUNCTION_HPP
 #define INF_IMR_FUNCTION_HPP
 
-#include "imr/ssa.hpp"
+#include <algorithm>
+
 #include "imr/block.hpp"
+#include "imr/locals.hpp"
+#include "imr/ssa.hpp"
 
 namespace inf {
 class function {
-public:
-    using body_iterator = block::iterator;
-    using body_const_iterator = block::const_iterator;
+  public:
+    using body_iterator        = block::iterator;
+    using body_const_iterator  = block::const_iterator;
+    using local_iterator       = locals::iterator;
+    using local_const_iterator = locals::const_iterator;
 
-private:
-    uint32_t locals;
-    block m_block;
+  private:
+    locals m_locals;
+    block  m_block;
 
   public:
-    ssa allocate() noexcept { return {locals++}; }
+    template <class... Args> ssa allocate(Args &&...args) noexcept {
+        m_locals.emplace_back(std::forward<Args>(args)...);
+        return {m_locals.size() - 1};
+    }
+    uint64_t nlocals() const noexcept { return m_locals.size(); }
+
+    local         &get_local(ssa var) { return m_locals.at(var.index); }
+    local_iterator get_local(label name) {
+        return std::ranges::find_if(m_locals, [name](local const &local) {
+            return name == local.m_label;
+        });
+    }
 
     void append_instruction(instruction i) { m_block.emplace_back(i); }
 
-    body_iterator body_begin() noexcept { return m_block.begin(); }
-    body_iterator body_end() noexcept { return m_block.end(); }
-    body_const_iterator body_begin() const noexcept { return m_block.begin(); }
-    body_const_iterator body_end() const noexcept { return m_block.end(); }
+    body_iterator        body_begin() noexcept { return m_block.begin(); }
+    body_iterator        body_end() noexcept { return m_block.end(); }
+    body_const_iterator  body_begin() const noexcept { return m_block.begin(); }
+    body_const_iterator  body_end() const noexcept { return m_block.end(); }
+    local_iterator       locals_begin() noexcept { return m_locals.begin(); }
+    local_iterator       locals_end() noexcept { return m_locals.end(); }
+    local_const_iterator locals_begin() const noexcept {
+        return m_locals.begin();
+    }
+    local_const_iterator locals_end() const noexcept { return m_locals.end(); }
 };
 }; // namespace inf
 

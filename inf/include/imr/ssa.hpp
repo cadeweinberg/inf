@@ -21,7 +21,7 @@
 
 namespace inf {
 struct ssa {
-    uint32_t index;
+    uint64_t index;
 };
 } // namespace inf
 

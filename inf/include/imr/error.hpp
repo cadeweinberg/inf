@@ -31,7 +31,7 @@ struct error {
         uint64_t index;
     };
 
-    error(std::string msg, location::tag loc) : msg(std::move(msg)), loc(loc) {}
+    error(std::string msg, location::tag loc = {}) : msg(std::move(msg)), loc(loc) {}
 };
 } // namespace inf
 

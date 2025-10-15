@@ -20,7 +20,7 @@
 #include <string_view>
 
 namespace inf {
-    using label = std::string_view;
-}
+using label = std::string_view;
+} // namespace inf
 
 #endif // !INF_IMR_LABEL_HPP

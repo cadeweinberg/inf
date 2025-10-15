@@ -19,16 +19,10 @@
 
 #include <unordered_map>
 
-#include "imr/label.hpp"
-#include "imr/value.hpp"
+#include "imr/symbol.hpp"
 
 namespace inf {
-struct symbol {
-    label label;
-    value value_;
-};
-
 class symbol_table : public std::unordered_map<label, symbol> {};
-};
+}; // namespace inf
 
 #endif // INF_ENV_SYMBOL_TABLE_HPP

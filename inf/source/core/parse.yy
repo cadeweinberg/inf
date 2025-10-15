@@ -16,7 +16,8 @@
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
 
 %{
-#include "support/log.hpp"
+#include <boost/log/trivial.hpp>
+
 #include "core/compile.hpp"
 #include "core/lex.hpp"
 
@@ -29,14 +30,14 @@ static void yyerror(lexer *lexer, context *context, char const *msg);
 %header
 %define lr.type ielr
 %define api.namespace {inf}
-// %define api.location.file "include/core/location.hpp"
-//%define api.location.include {"core/location.hpp"}
 %define api.value.type {operand}
+%define api.location.type {location}
 
 %code requires {
 #include "core/lex.hpp"
 #include "env/context.hpp"
 #include "imr/operand.hpp"
+#include "imr/location.hpp"
 }
 
 %param {lexer *lexer}
@@ -76,5 +77,5 @@ primary:
 %%
 
 static void yyerror(lexer *lexer, context *context, char const *msg) {
-    log(string_view{msg});
+    BOOST_LOG_TRIVIAL(error) << msg;
 }

@@ -20,37 +20,57 @@
 #include <cstdint>
 #include <variant>
 
+
+
 #include "imr/function.hpp"
 
 namespace inf {
-namespace detail {
-    using value_variant = std::variant<std::monostate,
-    uint64_t,
-    uint32_t,
-    uint16_t,
-    uint8_t,
-    int64_t,
-    int32_t,
-    int16_t,
-    int8_t,
-    function>;
-}
+struct value {
+    using variant = std::variant<std::monostate,
+                                 uint64_t,
+                                 uint32_t,
+                                 uint16_t,
+                                 uint8_t,
+                                 int64_t,
+                                 int32_t,
+                                 int16_t,
+                                 int8_t,
+                                 function,
+                                 error::tag>;
 
-class value : public detail::value_variant {
-  public:
-    value() : detail::value_variant(std::monostate{}) {}
-    template <class T> value(T &&t) : detail::value_variant(std::move(t)) {}
+    variant m_variant;
 
-    template <class T> bool is() const noexcept {
-        return std::holds_alternative<T>(*this);
+    value() : m_variant(std::monostate{}) {}
+    value(value &v) : m_variant(v.m_variant) {}
+    value(value const &v) : m_variant(v.m_variant) {}
+    value(value &&v) : m_variant(std::move(v.m_variant)) {}
+    template <class T> value(T &&t) : m_variant(std::move(t)) {}
+
+    value &operator=(value &other) {
+        m_variant = other.m_variant;
+        return *this;
     }
 
-    template <class T> T       &as() { return std::get<T>(*this); }
-    template <class T> T const &as() const { return std::get<T>(*this); }
+    value &operator=(value const &other) {
+        m_variant = other.m_variant;
+        return *this;
+    }
 
-    template <std::size_t I, class T> T &as() { return std::get<I>(*this); }
+    value &operator=(value &&other) {
+        m_variant = std::move(other.m_variant);
+        return *this;
+    }
+
+    template <class T> bool is() const noexcept {
+        return std::holds_alternative<T>(m_variant);
+    }
+
+    template <class T> T       &as() { return std::get<T>(m_variant); }
+    template <class T> T const &as() const { return std::get<T>(m_variant); }
+
+    template <std::size_t I, class T> T &as() { return std::get<I>(m_variant); }
     template <std::size_t I, class T> T const &as() const {
-        return std::get<I>(*this);
+        return std::get<I>(m_variant);
     }
 };
 }; // namespace inf

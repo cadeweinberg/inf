@@ -87,7 +87,11 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Boost)
 
-set(INF_DEPS Boost::graph Boost::unit_test_framework)
+set(INF_DEPS
+  Boost::graph
+  Boost::unit_test_framework
+  Boost::multiprecision
+)
 
 message(STATUS "Build: ${CMAKE_BUILD_TYPE}")
 message(STATUS "C compiler: ${CMAKE_C_COMPILER_ID}")
