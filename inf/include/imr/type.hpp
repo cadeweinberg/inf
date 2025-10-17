@@ -18,9 +18,10 @@
 #define INF_IMR_TYPE_HPP
 
 #include <algorithm>
-#include <cstdint>
 #include <variant>
 #include <vector>
+
+#include "imr/number.hpp"
 
 namespace inf {
 
@@ -34,14 +35,7 @@ struct type {
     };
 
     using variant = std::variant<std::monostate,
-                                 uint64_t,
-                                 uint32_t,
-                                 uint16_t,
-                                 uint8_t,
-                                 int64_t,
-                                 int32_t,
-                                 int16_t,
-                                 int8_t,
+                                 integer,
                                  function>;
     variant m_variant;
 
@@ -92,21 +86,7 @@ struct type_equality_visitor {
         return right->is<std::monostate>();
     }
 
-    constexpr bool operator()(uint64_t) { return right->is<uint64_t>(); }
-
-    constexpr bool operator()(uint32_t) { return right->is<uint32_t>(); }
-
-    constexpr bool operator()(uint16_t) { return right->is<uint16_t>(); }
-
-    constexpr bool operator()(uint8_t) { return right->is<uint8_t>(); }
-
-    constexpr bool operator()(int64_t) { return right->is<int64_t>(); }
-
-    constexpr bool operator()(int32_t) { return right->is<int32_t>(); }
-
-    constexpr bool operator()(int16_t) { return right->is<int16_t>(); }
-
-    constexpr bool operator()(int8_t) { return right->is<int8_t>(); }
+    constexpr bool operator()(integer) { return right->is<integer>(); }
 
     constexpr bool operator()(type::function const &left) {
         if (!right->is<type::function>()) { return false; }

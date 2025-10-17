@@ -59,7 +59,7 @@ struct location {
     }
 };
 
-inline std::ostream &operator<<(std::ostream &out, location location) {
+inline std::ostream &operator<<(std::ostream &out, location const &location) {
     out << "[";
     if (location.path != nullptr) {
         out << location.path->string() << ":";

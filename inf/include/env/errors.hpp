@@ -18,11 +18,12 @@
 #define INF_ENV_ERRORS_HPP
 
 #include <vector>
+#include <memory>
 
 #include "imr/error.hpp"
 
 namespace inf {
-class errors : public std::vector<error> {};
+class errors : public std::vector<std::unique_ptr<error>> {};
 } // namespace inf
 
 #endif // !INF_ENV_ERRORS_HPP

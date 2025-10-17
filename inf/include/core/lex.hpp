@@ -30,6 +30,7 @@ class context;
 class lexer {
     char const *buffer;
     char const *token;
+    char const *marker;
     char const *cursor;
     char const *limit;
     location location_;

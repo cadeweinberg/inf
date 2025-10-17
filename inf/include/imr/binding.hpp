@@ -31,7 +31,7 @@ class binding : public detail::binding_variant {
 public:
     template <class T> binding(T &&t) : detail::binding_variant(std::move(t)) {}
 
-    type const &get_type() const noexcept {
+    type::ptr get_type() const noexcept {
         if (is<local>()) {
             return as<local>().m_type;
         }

@@ -115,7 +115,7 @@ template <class To> struct cast_value_visitor {
 
     value operator()(function const &) { return {ctx->fail("Bad Cast")}; }
 
-    value operator()(error::tag const &tag) { return {tag}; }
+    value operator()(error::ptr const &ptr) { return ptr; }
 };
 } // namespace detail
 

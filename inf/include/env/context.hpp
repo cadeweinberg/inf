@@ -24,7 +24,6 @@
 
 #include "env/errors.hpp"
 #include "env/frames.hpp"
-#include "env/locations.hpp"
 #include "env/stack.hpp"
 #include "env/string_interner.hpp"
 #include "env/symbol_table.hpp"
@@ -35,7 +34,6 @@ namespace inf {
 class context {
     function       *fn;
     errors          errs;
-    locations       locs;
     string_interner strings;
     type_interner   types;
     symbol_table    symbols;
@@ -43,20 +41,10 @@ class context {
     frames          frame_stack;
 
   public:
-    error::tag fail(std::string message, location loc = {}) {
-        location::tag tag = put_loc(loc);
-        errs.emplace_back(std::move(message), tag);
-        return {errs.size()};
+    error::ptr fail(std::string message, location loc = {}) {
+        errs.emplace_back(std::make_unique<error>(std::move(message), loc));
+        return errs.back().get();
     }
-
-    error &get_error(error::tag tag) { return errs.at(tag.index); }
-
-    location::tag put_loc(location loc) {
-        locs.emplace_back(loc);
-        return {locs.size()};
-    }
-
-    location &get_loc(location::tag tag) { return locs.at(tag.index); }
 
     label string_intern(std::string_view view) {
         auto pair = strings.emplace(view);
@@ -64,14 +52,7 @@ class context {
     };
 
     type::ptr type_nil() noexcept { return types.get_nil(); }
-    type::ptr type_u64() noexcept { return types.get_u64(); }
-    type::ptr type_u32() noexcept { return types.get_u32(); }
-    type::ptr type_u16() noexcept { return types.get_u16(); }
-    type::ptr type_u8() noexcept { return types.get_u8(); }
-    type::ptr type_i64() noexcept { return types.get_i64(); }
-    type::ptr type_i32() noexcept { return types.get_i32(); }
-    type::ptr type_i16() noexcept { return types.get_i16(); }
-    type::ptr type_i8() noexcept { return types.get_i8(); }
+    type::ptr type_integer() noexcept { return types.get_integer(); }
     type::ptr type_function(type::ptr return_type, type::function::arguments argument_types) {
         return types.get_function(return_type, std::move(argument_types));
     }
@@ -88,7 +69,7 @@ class context {
         return {iter->second};
     }
 
-    auto global_emplace(label l, type type_, value value_) {
+    auto global_emplace(label l, type::ptr type_, value value_) {
         return symbols.try_emplace(l, l, type_, value_);
     }
 
@@ -124,13 +105,6 @@ class context {
     void build_function(function *fn) {
         BOOST_ASSERT(fn != nullptr);
         this->fn = fn;
-    }
-
-    void build_function(label l) {
-        type  t    = inf::type{};
-        value v    = inf::function{};
-        auto  pair = global_emplace(l, std::move(t), std::move(v));
-        fn         = &(pair.first->second.m_value.as<inf::function>());
     }
 
     template <class... Args> ssa allocate_local(Args &&...args) noexcept {

@@ -22,11 +22,11 @@
 
 namespace inf {
 struct local {
-    label m_label;
-    type  m_type;
+    label     m_label;
+    type::ptr m_type;
 
-    local(label name, type kind) : m_label(name), m_type(kind) {}
-    local(type kind) : m_label(), m_type(kind) {}
+    local(label name, type::ptr kind) : m_label(name), m_type(kind) {}
+    local(type::ptr kind) : m_label(), m_type(kind) {}
 };
 } // namespace inf
 

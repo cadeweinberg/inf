@@ -25,8 +25,7 @@
 namespace inf {
 
 operand parser::fail(std::string message) {
-    error::tag tag = ctx->fail(std::move(message), lexer_.loc());
-    return operand(tag);
+    return ctx->fail(std::move(message), lexer_.loc());
 }
 
 operand parser::expression() { return infix(precedence::assignment); }
@@ -36,14 +35,14 @@ operand parser::infix(precedence prec) {
     if (r.prefix == nullptr) { return fail("expected expression"); }
 
     operand result = (this->*r.prefix)();
-    if (result.is<error::tag>()) { return result; }
+    if (result.is<error::ptr>()) { return result; }
 
     while (true) {
         r = rule_of(token_);
         if (prec > r.prec) { break; }
 
         operand left = (this->*r.infix)(result);
-        if (left.is<error::tag>()) { return left; }
+        if (left.is<error::ptr>()) { return left; }
 
         result = left;
     }
@@ -66,9 +65,9 @@ operand parser::unop() {
     next();
 
     operand result = infix(precedence::unary);
-    if (result.is<error::tag>()) { return result; }
+    if (result.is<error::ptr>()) { return result; }
 
-    switch (op.kind) {
+    switch (op.m_kind) {
     case token::kind::minus: return compile_neg(result, *ctx);
     default:                 return fail("unexpected unop");
     }
@@ -80,11 +79,11 @@ operand parser::binop(operand left) {
     next();
 
     operand result = infix(inc(rule.prec));
-    if (result.is<error::tag>()) {
+    if (result.is<error::ptr>()) {
         return result;
     }
 
-    switch (op.kind) {
+    switch (op.m_kind) {
     case token::kind::plus:    return compile_add(left, result, *ctx);
     case token::kind::minus:   return compile_sub(left, result, *ctx);
     case token::kind::star:    return compile_mul(left, result, *ctx);
@@ -94,16 +93,65 @@ operand parser::binop(operand left) {
     }
 }
 
-operand parser::integer() {
-    BOOST_ASSERT(token_.kind == token::kind::integer);
-    operand result = token_.payload;
+operand parser::u64() {
+    BOOST_ASSERT(token_.m_kind == token::kind::u64);
+    operand result = token_.m_payload;
+    next();
+    return result;
+}
+
+operand parser::u32() {
+    BOOST_ASSERT(token_.m_kind == token::kind::u32);
+    operand result = token_.m_payload;
+    next();
+    return result;
+}
+
+operand parser::u16() {
+    BOOST_ASSERT(token_.m_kind == token::kind::u16);
+    operand result = token_.m_payload;
+    next();
+    return result;
+}
+
+operand parser::u8() {
+    BOOST_ASSERT(token_.m_kind == token::kind::u8);
+    operand result = token_.m_payload;
+    next();
+    return result;
+}
+
+operand parser::i64() {
+    BOOST_ASSERT(token_.m_kind == token::kind::i64);
+    operand result = token_.m_payload;
+    next();
+    return result;
+}
+
+operand parser::i32() {
+    BOOST_ASSERT(token_.m_kind == token::kind::i32);
+    operand result = token_.m_payload;
+    next();
+    return result;
+}
+
+operand parser::i16() {
+    BOOST_ASSERT(token_.m_kind == token::kind::i16);
+    operand result = token_.m_payload;
+    next();
+    return result;
+}
+
+operand parser::i8() {
+    BOOST_ASSERT(token_.m_kind == token::kind::i8);
+    operand result = token_.m_payload;
     next();
     return result;
 }
 
 operand parser::label() {
-    BOOST_ASSERT(token_.kind == token::kind::label);
-    operand result = token_.payload;
+    BOOST_ASSERT(token_.m_kind == token::kind::label);
+    operand result = token_.m_payload;
     next();
     return result;
 }
@@ -113,10 +161,18 @@ operand parser::top() { return expression(); }
 // clang-format off
 // static
 parser::rule parser::rule_of(token token_) {
-    static std::array<parser::rule, 12> rules = {{
+    static std::array<parser::rule,
+        (size_t)std::to_underlying(token::kind::count)> rules = {{
         {nullptr,          nullptr,        parser::precedence::none}, // token::error
         {nullptr,          nullptr,        parser::precedence::none}, // token::end
-        {&parser::integer, nullptr,        parser::precedence::primary}, // token::integer
+        {&parser::u64,     nullptr,        parser::precedence::primary}, // token::u64
+        {&parser::u32,     nullptr,        parser::precedence::primary}, // token::u32
+        {&parser::u16,     nullptr,        parser::precedence::primary}, // token::u16
+        {&parser::u8,      nullptr,        parser::precedence::primary}, // token::u8
+        {&parser::i64,     nullptr,        parser::precedence::primary}, // token::i64
+        {&parser::i32,     nullptr,        parser::precedence::primary}, // token::i32
+        {&parser::i16,     nullptr,        parser::precedence::primary}, // token::i16
+        {&parser::i8,      nullptr,        parser::precedence::primary}, // token::i8
         {&parser::label,   nullptr,        parser::precedence::primary}, // token::label
         {&parser::parens,  nullptr,        parser::precedence::call}, // token::lparen
         {nullptr,          nullptr,        parser::precedence::none}, // token::rparen
@@ -128,7 +184,7 @@ parser::rule parser::rule_of(token token_) {
         {nullptr,          &parser::binop, parser::precedence::factor}, // token::percent
     }};
 
-    return rules.at((size_t)std::to_underlying(token_.kind));
+    return rules.at((size_t)std::to_underlying(token_.m_kind));
 }
 // clang-format on
 } // namespace inf

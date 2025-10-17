@@ -43,20 +43,22 @@ while (true) {
             integer = [0-9]+;
             label = [_a-zA-Z][_a-zA-Z0-9]*;
 
-            * { return token::error(); }
+            * { return token::error(ctx->fail("unknown token")); }
             $ { return token::end(); }
 
             [\n\t\f\v ] { up(); continue; }
 
             integer {
                 up();
-                int64_t integer = 0;
+                int64_t i64 = 0;
                 auto [ptr, ec] = std::from_chars(token,
                                                  cursor,
-                                                 integer);
+                                                 i64);
 
-                BOOST_ASSERT(ec == std::errc());
-                return token::integer(integer);
+                if (ec != std::errc()) {
+                    return token::error(ctx->fail("integer conversion failed"));
+                }
+                return token::integer(i64);
             }
 
             label {

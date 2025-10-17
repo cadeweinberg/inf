@@ -16,6 +16,8 @@
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
 
 #define BOOST_TEST_DYN_LINK
+
+#include <boost/log/trivial.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include "core/lex.hpp"
@@ -24,7 +26,9 @@
 static bool lex_token(inf::lexer &lexer, std::string_view view, inf::token token) {
     lexer.set_view(view);
     inf::token result = lexer.lex();
-    return result == token;
+    if (result == token) { return true; }
+    BOOST_LOG_TRIVIAL(error) << "Result: " << result << " Expected: " << token << "\n";
+    return false;
 }
 
 BOOST_AUTO_TEST_CASE( lex )
@@ -32,7 +36,10 @@ BOOST_AUTO_TEST_CASE( lex )
     inf::context ctx;
     inf::lexer lexer{&ctx};
 
-    BOOST_TEST(lex_token(lexer, {"32789432"}, inf::token::integer(32789432UL)));
+    BOOST_TEST(lex_token(lexer, {"32789432"}, inf::token::i64(32789432)));
+    BOOST_TEST(lex_token(lexer, {"-9223372036854775808"}, inf::token::i64(INT64_MIN)));
+    BOOST_TEST(lex_token(lexer, {"824865317u64"}, inf::token::u64(824865317)));
+
     BOOST_TEST(lex_token(lexer, {"index"}, inf::token::label({"index"})));
 
     BOOST_TEST(lex_token(lexer, {"+"}, inf::token::plus()));

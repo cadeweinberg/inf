@@ -78,6 +78,11 @@ else()
   set(INF_LINK_OPTIONS)
 endif()
 
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(GMP gmp)
+pkg_check_modules(MPFR mpfr)
+
 include(FetchContent)
 FetchContent_Declare(
   Boost
@@ -91,6 +96,7 @@ set(INF_DEPS
   Boost::graph
   Boost::unit_test_framework
   Boost::multiprecision
+  Boost::log
 )
 
 message(STATUS "Build: ${CMAKE_BUILD_TYPE}")

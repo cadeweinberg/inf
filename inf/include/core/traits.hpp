@@ -28,14 +28,7 @@ constexpr inline bool is_integral(operand const &o, context &ctx);
 namespace detail {
 struct is_integral_type_visitor {
     constexpr bool operator()(std::monostate const &) { return false; }
-    constexpr bool operator()(uint64_t const &) { return true; }
-    constexpr bool operator()(uint32_t const &) { return true; }
-    constexpr bool operator()(uint16_t const &) { return true; }
-    constexpr bool operator()(uint8_t const &) { return true; }
-    constexpr bool operator()(int64_t const &) { return true; }
-    constexpr bool operator()(int32_t const &) { return true; }
-    constexpr bool operator()(int16_t const &) { return true; }
-    constexpr bool operator()(int8_t const &) { return true; }
+    constexpr bool operator()(integer const &) { return true; }
     constexpr bool operator()(type::function const &) { return false; }
 };
 
@@ -44,19 +37,20 @@ struct is_integral_operand_visitor {
 
     bool operator()(std::monostate const &) { return false; }
 
-    bool operator()(ssa const & var) { return true; }
+    bool operator()(ssa const &var) {
+        local & x = ctx->get_local(var);
+        return is_integral(x.m_type);
+    }
 
-    bool operator()(label const & name) { return true; }
+    bool operator()(label const & name) {
+        std::optional<binding> found = ctx->lookup_binding(name);
+        if (!found) { return false; }
+        return is_integral(found->get_type());
+    }
 
-    bool operator()(uint64_t const &) { return true; }
-    bool operator()(uint32_t const &) { return true; }
-    bool operator()(uint16_t const &) { return true; }
-    bool operator()(uint8_t const &) { return true; }
-    bool operator()(int64_t const &) { return true; }
-    bool operator()(int32_t const &) { return true; }
-    bool operator()(int16_t const &) { return true; }
-    bool operator()(int8_t const &) { return true; }
-    bool operator()(error::tag const &) { return false; }
+    bool operator()(integer const &) { return true; }
+
+    bool operator()(error::ptr const &) { return false; }
 };
 } // namespace detail
 

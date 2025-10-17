@@ -17,12 +17,25 @@
 #ifndef INF_IMR_SSA_HPP
 #define INF_IMR_SSA_HPP
 
+#include <ostream>
 #include <cstdint>
 
 namespace inf {
 struct ssa {
     uint64_t index;
 };
+
+constexpr inline bool operator==(ssa const &a, ssa const &b) {
+    return a.index == b.index;
+}
+
+constexpr inline bool operator!=(ssa const &a, ssa const &b) {
+    return !(a == b);
+}
+
+inline std::ostream &operator<<(std::ostream &out, ssa const &var) {
+    return out << "$" << var.index;
+}
 } // namespace inf
 
 #endif // !INF_IMR_SSA_HPP

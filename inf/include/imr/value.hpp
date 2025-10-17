@@ -17,26 +17,17 @@
 #ifndef INF_IMR_VALUE_HPP
 #define INF_IMR_VALUE_HPP
 
-#include <cstdint>
 #include <variant>
 
-
-
 #include "imr/function.hpp"
+#include "imr/number.hpp"
 
 namespace inf {
 struct value {
     using variant = std::variant<std::monostate,
-                                 uint64_t,
-                                 uint32_t,
-                                 uint16_t,
-                                 uint8_t,
-                                 int64_t,
-                                 int32_t,
-                                 int16_t,
-                                 int8_t,
+                                 integer,
                                  function,
-                                 error::tag>;
+                                 error::ptr>;
 
     variant m_variant;
 
@@ -73,6 +64,6 @@ struct value {
         return std::get<I>(m_variant);
     }
 };
-}; // namespace inf
+} // namespace inf
 
 #endif // INF_IMR_VALUE_HPP

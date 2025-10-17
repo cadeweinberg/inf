@@ -44,38 +44,17 @@ class type_interner {
     };
 
     std::unique_ptr<type> nil;
-    std::unique_ptr<type> u64;
-    std::unique_ptr<type> u32;
-    std::unique_ptr<type> u16;
-    std::unique_ptr<type> u8;
-    std::unique_ptr<type> i64;
-    std::unique_ptr<type> i32;
-    std::unique_ptr<type> i16;
-    std::unique_ptr<type> i8;
+    std::unique_ptr<type> integer;
     list                  functions;
 
   public:
     type_interner()
         : nil(std::make_unique<type>(std::monostate{})),
-          u64(std::make_unique<type>(uint64_t{})),
-          u32(std::make_unique<type>(uint32_t{})),
-          u16(std::make_unique<type>(uint16_t{})),
-          u8(std::make_unique<type>(uint8_t{})),
-          i64(std::make_unique<type>(int64_t{})),
-          i32(std::make_unique<type>(int32_t{})),
-          i16(std::make_unique<type>(int16_t{})),
-          i8(std::make_unique<type>(int8_t{})),
+          integer(std::make_unique<type>(inf::integer{0})),
           functions{} {}
 
     type::ptr get_nil() noexcept { return nil.get(); }
-    type::ptr get_u64() noexcept { return u64.get(); }
-    type::ptr get_u32() noexcept { return u32.get(); }
-    type::ptr get_u16() noexcept { return u16.get(); }
-    type::ptr get_u8() noexcept { return u8.get(); }
-    type::ptr get_i64() noexcept { return i64.get(); }
-    type::ptr get_i32() noexcept { return i32.get(); }
-    type::ptr get_i16() noexcept { return i16.get(); }
-    type::ptr get_i8() noexcept { return i8.get(); }
+    type::ptr get_integer() noexcept { return integer.get(); }
     type::ptr get_function(type::ptr return_type, type::function::arguments argument_types) {
         return functions.insert(type::function{return_type, std::move(argument_types)});
     }

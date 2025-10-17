@@ -23,9 +23,9 @@
 
 namespace inf {
 struct symbol {
-    label m_label;
-    type  m_type;
-    value m_value;
+    label     m_label;
+    type::ptr m_type;
+    value     m_value;
 };
 } // namespace inf
 

@@ -81,7 +81,14 @@ class parser {
     operand parens();
     operand unop();
     operand binop(operand left);
-    operand integer();
+    operand u64();
+    operand u32();
+    operand u16();
+    operand u8();
+    operand i64();
+    operand i32();
+    operand i16();
+    operand i8();
     operand label();
     operand top();
 

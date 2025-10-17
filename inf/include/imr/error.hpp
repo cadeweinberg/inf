@@ -23,16 +23,18 @@
 
 namespace inf {
 struct error {
-    std::string   msg;
-    location::tag loc;
+    std::string msg;
+    location    loc;
 
   public:
-    struct tag {
-        uint64_t index;
-    };
+    using ptr = error const *;
 
-    error(std::string msg, location::tag loc = {}) : msg(std::move(msg)), loc(loc) {}
+    error(std::string msg, location loc = {}) : msg(std::move(msg)), loc(loc) {}
 };
+
+inline std::ostream &operator<<(std::ostream &out, error const &e) {
+    return out << e.loc << " " << e.msg;
+}
 } // namespace inf
 
 #endif // !INF_IMR_ERROR_HPP
