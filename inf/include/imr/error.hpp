@@ -17,23 +17,20 @@
 #ifndef INF_IMR_ERROR_HPP
 #define INF_IMR_ERROR_HPP
 
+#include <ostream>
 #include <string>
 
 #include "imr/location.hpp"
 
 namespace inf {
-struct error {
-    std::string msg;
-    location    loc;
-
-  public:
-    using ptr = error const *;
-
-    error(std::string msg, location loc = {}) : msg(std::move(msg)), loc(loc) {}
+struct Error {
+    std::string  message;
+    yy::location location;
 };
 
-inline std::ostream &operator<<(std::ostream &out, error const &e) {
-    return out << e.loc << " " << e.msg;
+inline std::ostream &operator<<(std::ostream &out, Error const &error) {
+    out << "[" << error.location << "] " << error.message;
+    return out;
 }
 } // namespace inf
 

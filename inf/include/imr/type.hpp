@@ -17,97 +17,68 @@
 #ifndef INF_IMR_TYPE_HPP
 #define INF_IMR_TYPE_HPP
 
-#include <algorithm>
+#include <memory>
 #include <variant>
-#include <vector>
-
-#include "imr/number.hpp"
 
 namespace inf {
+class Type {
+  public:
+    using Ptr = std::unique_ptr<Type>;
+    struct Nil {};
+    struct Integer {};
 
-struct type {
-    using ptr = type const *;
+  private:
+    using Variant = std::variant<Nil, Integer>;
+    Variant variant;
 
-    struct function {
-        using arguments = std::vector<ptr>;
-        ptr       return_type;
-        arguments argument_types;
-    };
+  public:
+    Type() : variant() {}
+    Type(Type const &type) : variant(type.variant) {}
+    Type(Type &&type) : variant(std::move(type.variant)) {}
+    template <class T> Type(T &&t) : variant(std::move(t)) {}
+    template <class T> Type(T const &t) : variant(t) {}
 
-    using variant = std::variant<std::monostate,
-                                 integer,
-                                 function>;
-    variant m_variant;
-
-    type() : m_variant(std::monostate{}) {}
-    type(type &t) : m_variant(t.m_variant) {}
-    type(type const &t) : m_variant(t.m_variant) {}
-    type(type &&t) : m_variant(std::move(t.m_variant)) {}
-    template <class T> type(T &&t) : m_variant(std::move(t)) {}
-
-    type &operator=(type &other) {
-        m_variant = other.m_variant;
+    template <class T> Type &operator=(T &&t) {
+        variant = std::move(t);
         return *this;
     }
 
-    type &operator=(type const &other) {
-        m_variant = other.m_variant;
+    template <class T> Type &operator=(T const &t) {
+        variant = t;
         return *this;
     }
 
-    type &operator=(type &&other) {
-        m_variant = std::move(other.m_variant);
+    Type &operator=(Type &&other) {
+        if (this == &other) { return *this; }
+
+        variant = std::move(other.variant);
         return *this;
     }
+
+    Type &operator=(Type const &other) {
+        if (this == &other) { return *this; }
+
+        variant = other.variant;
+        return *this;
+    }
+
+    Variant       &get() noexcept { return variant; }
+    Variant const &get() const noexcept { return variant; }
 
     template <class T> bool is() const noexcept {
-        return std::holds_alternative<T>(m_variant);
+        return std::holds_alternative<T>(variant);
     }
 
-    template <class T> T       &as() { return std::get<T>(*this); }
-    template <class T> T const &as() const { return std::get<T>(m_variant); }
+    template <class T> T       &as() { return std::get<T>(variant); }
+    template <class T> T const &as() const { return std::get<T>(variant); }
 
-    template <std::size_t I, class T> T &as() { return std::get<I>(m_variant); }
-    template <std::size_t I, class T> T const &as() const {
-        return std::get<I>(*this);
-    }
-};
-
-constexpr inline bool operator==(type const &left, type const &right);
-constexpr inline bool operator!=(type const &left, type const &right) {
-    return !(left == right);
-}
-
-namespace detail {
-struct type_equality_visitor {
-    type::ptr right;
-
-    constexpr bool operator()(std::monostate) {
-        return right->is<std::monostate>();
-    }
-
-    constexpr bool operator()(integer) { return right->is<integer>(); }
-
-    constexpr bool operator()(type::function const &left) {
-        if (!right->is<type::function>()) { return false; }
-
-        type::function const &rfn = right->as<type::function>();
-
-        if (*left.return_type != *rfn.return_type) { return false; }
-
-        return std::ranges::equal(
-            left.argument_types,
-            rfn.argument_types,
-            [](type::ptr left, type::ptr right) { return *left == *right; });
+    template <class T> static Ptr create(T &&t) {
+        return std::make_unique<Type>(std::move(t));
     }
 };
-} // namespace detail
 
-constexpr inline bool operator==(type const &left, type const &right) {
-    detail::type_equality_visitor visitor{&right};
-    return std::visit(visitor, left.m_variant);
-}
-
+bool        operator==(Type const &a, Type const &b);
+inline bool operator!=(Type const &a, Type const &b) { return !(a == b); }
 } // namespace inf
 
 #endif // !INF_IMR_TYPE_HPP

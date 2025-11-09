@@ -14,15 +14,21 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef INF_IMR_LOCALS_HPP
-#define INF_IMR_LOCALS_HPP
 
-#include <vector>
-
-#include "imr/local.hpp"
+#include "imr/type.hpp"
 
 namespace inf {
-class locals : public std::vector<local> {};
-} // namespace inf
+namespace detail {
+struct TypeEqualityVisitor {
+    Type const *b;
 
-#endif // !INF_IMR_LOCALS_HPP
+    bool operator()(Type::Nil const &) { return b->is<Type::Nil>(); }
+    bool operator()(Type::Integer const &) { return b->is<Type::Integer>(); }
+};
+} // namespace detail
+
+bool operator==(Type const &a, Type const &b) {
+    detail::TypeEqualityVisitor visitor{&b};
+    return std::visit(visitor, a.get());
+}
+} // namespace inf

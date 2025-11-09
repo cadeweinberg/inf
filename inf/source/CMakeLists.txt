@@ -45,16 +45,25 @@ configure_file(
 )
 
 add_custom_command(
-    OUTPUT ${INF_SOURCE_DIR}/core/lex.cpp
-    COMMAND re2c --output ${INF_SOURCE_DIR}/core/lex.cpp ${INF_SOURCE_DIR}/core/lex.re2c
-    DEPENDS ${INF_SOURCE_DIR}/core/lex.re2c
+    OUTPUT ${INF_SOURCE_DIR}/core/parser.cpp ${INF_INCLUDE_DIR}/imr/location.hpp
+    COMMAND bison ${INF_SOURCE_DIR}/core/parser.ypp
+    --output=${INF_SOURCE_DIR}/core/parser.cpp
+    --header=${INF_INCLUDE_DIR}/core/parser.hpp
+    -Dapi.location.file='"${INF_INCLUDE_DIR}/imr/location.hpp"'
+    DEPENDS ${INF_SOURCE_DIR}/core/parser.ypp
+)
+add_custom_command(
+    OUTPUT ${INF_SOURCE_DIR}/core/lexer.cpp
+    COMMAND re2c --output ${INF_SOURCE_DIR}/core/lexer.cpp ${INF_SOURCE_DIR}/core/lexer.re2c
+    DEPENDS ${INF_SOURCE_DIR}/core/lexer.re2c ${INF_INCLUDE_DIR}/imr/location.hpp
 )
 
 set(INF_COMMON_SOURCE_FILES
-  ${INF_SOURCE_DIR}/core/cast.cpp
-  ${INF_SOURCE_DIR}/core/compile.cpp
-  ${INF_SOURCE_DIR}/core/lex.cpp
-  ${INF_SOURCE_DIR}/core/parse.cpp
+    ${INF_SOURCE_DIR}/core/lexer.cpp
+    ${INF_SOURCE_DIR}/core/parser.cpp
+
+    ${INF_SOURCE_DIR}/imr/type.cpp
+    ${INF_SOURCE_DIR}/imr/value.cpp
 )
 add_library(inf_common ${INF_COMMON_SOURCE_FILES})
 target_include_directories(inf_common PUBLIC ${INF_INCLUDE_DIR})
@@ -72,9 +81,7 @@ target_link_libraries(inf PRIVATE inf_common)
 
 
 add_executable(inf_test
-    ${INF_TEST_DIR}/lex.cpp
     ${INF_TEST_DIR}/main.cpp
-    ${INF_TEST_DIR}/parse.cpp
 )
 target_include_directories(inf_test PRIVATE ${INF_INCLUDE_DIR})
 target_compile_options(inf_test PRIVATE ${INF_COMPILE_OPTIONS})

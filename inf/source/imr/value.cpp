@@ -14,15 +14,25 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef INF_ENV_STACK_HPP
-#define INF_ENV_STACK_HPP
-
-#include <vector>
 
 #include "imr/value.hpp"
 
 namespace inf {
-class stack : public std::vector<value> {};
-} // namespace inf
+namespace detail {
+struct ValueEqualityVisitor {
+    Value const *b;
 
-#endif // !INF_ENV_STACK_HPP
+    bool operator()(Value::Nil const &) { return b->is<Value::Nil>(); }
+
+    bool operator()(Integer const &integer) {
+        if (!b->is<Value::Nil>()) { return false; }
+        return integer == b->as<Integer>();
+    }
+};
+} // namespace detail
+
+bool operator==(Value const &a, Value const &b) {
+    detail::ValueEqualityVisitor visitor{&b};
+    return std::visit(visitor, a.get());
+}
+} // namespace inf

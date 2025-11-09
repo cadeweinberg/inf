@@ -19,51 +19,55 @@
 
 #include <variant>
 
-#include "imr/function.hpp"
 #include "imr/number.hpp"
 
 namespace inf {
-struct value {
-    using variant = std::variant<std::monostate,
-                                 integer,
-                                 function,
-                                 error::ptr>;
+class Value {
+  public:
+    using Nil = std::monostate;
+    using Variant = std::variant<Nil, Integer>;
 
-    variant m_variant;
+  private:
+    Variant variant;
 
-    value() : m_variant(std::monostate{}) {}
-    value(value &v) : m_variant(v.m_variant) {}
-    value(value const &v) : m_variant(v.m_variant) {}
-    value(value &&v) : m_variant(std::move(v.m_variant)) {}
-    template <class T> value(T &&t) : m_variant(std::move(t)) {}
+  public:
+    Value() : variant() {}
+    Value(Value const &value) : variant(value.variant) {}
+    Value(Value &&value) : variant(std::move(value.variant)) {}
+    template <class T> Value(T &&t) : variant(std::move(t)) {}
 
-    value &operator=(value &other) {
-        m_variant = other.m_variant;
+    template <class T> Value &operator=(T &&t) {
+        variant = std::move(t);
         return *this;
     }
 
-    value &operator=(value const &other) {
-        m_variant = other.m_variant;
+    Value &operator=(Value const &other) {
+        if (this == &other) { return *this; }
+
+        variant = other.variant;
         return *this;
     }
 
-    value &operator=(value &&other) {
-        m_variant = std::move(other.m_variant);
+    Value &operator=(Value &&other) {
+        if (this == &other) { return *this; }
+
+        variant = std::move(other.variant);
         return *this;
     }
+
+    Variant &get() noexcept { return variant; }
+    Variant const &get() const noexcept { return variant; }
 
     template <class T> bool is() const noexcept {
-        return std::holds_alternative<T>(m_variant);
+        return std::holds_alternative<T>(variant);
     }
 
-    template <class T> T       &as() { return std::get<T>(m_variant); }
-    template <class T> T const &as() const { return std::get<T>(m_variant); }
-
-    template <std::size_t I, class T> T &as() { return std::get<I>(m_variant); }
-    template <std::size_t I, class T> T const &as() const {
-        return std::get<I>(m_variant);
-    }
+    template <class T> T       &as() { return std::get<T>(variant); }
+    template <class T> T const &as() const { return std::get<T>(variant); }
 };
+
+bool        operator==(Value const &a, Value const &b);
+inline bool operator!=(Value const &a, Value const &b) { return !(a == b); }
 } // namespace inf
 
-#endif // INF_IMR_VALUE_HPP
+#endif // !INF_IMR_VALUE_HPP

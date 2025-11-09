@@ -21,7 +21,7 @@
 #include <unordered_set>
 
 namespace inf {
-class string_interner : public std::unordered_set<std::string> {};
-}; // namespace inf
+class StringInterner : public std::unordered_set<std::string> {};
+} // namespace inf
 
-#endif // !INF_ENV_STRING_INTERNER_HPP
+#endif // !INT_ENV_STRING_INTERNER_HPP

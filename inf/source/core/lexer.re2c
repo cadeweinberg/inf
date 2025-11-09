@@ -19,11 +19,11 @@
 
 #include <boost/assert.hpp>
 
-#include "core/lex.hpp"
-#include "env/context.hpp"
+#include "core/lexer.hpp"
+#include "core/parser.hpp"
 
-namespace inf {
-inf::token lexer::lex() {
+namespace yy {
+Parser::symbol_type Lexer::advance() {
 while (true) {
         location_.step();
         token                 = cursor;
@@ -43,22 +43,14 @@ while (true) {
             integer = [0-9]+;
             label = [_a-zA-Z][_a-zA-Z0-9]*;
 
-            * { return token::error(ctx->fail("unknown token")); }
-            $ { return token::end(); }
+            * { return ; }
+            $ { return Parser::make_EOF(location_); }
 
             [\n\t\f\v ] { up(); continue; }
 
             integer {
                 up();
-                int64_t i64 = 0;
-                auto [ptr, ec] = std::from_chars(token,
-                                                 cursor,
-                                                 i64);
-
-                if (ec != std::errc()) {
-                    return token::error(ctx->fail("integer conversion failed"));
-                }
-                return token::integer(i64);
+                return Parser::make_INTEGER(Value{Integer{std::string_view{token, cursor}}});
             }
 
             label {
@@ -66,6 +58,15 @@ while (true) {
                 auto sv = ctx->string_intern({token, cursor});
                 return token::label(sv);
             }
+
+            "u64" { up(); return token::u64(0); }
+            "u32" { up(); return token::u32(0); }
+            "u16" { up(); return token::u16(0); }
+            "u8"  { up(); return token::u8(0); }
+            "i64" { up(); return token::i64(0); }
+            "i32" { up(); return token::i32(0); }
+            "i16" { up(); return token::i16(0); }
+            "i8"  { up(); return token::i8(0); }
 
             "(" { up(); return token::lparen(); }
             ")" { up(); return token::rparen(); }

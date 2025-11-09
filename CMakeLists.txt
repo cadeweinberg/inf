@@ -90,13 +90,42 @@ FetchContent_Declare(
   GIT_TAG ef7fea34711a189472893b88205b1dd3c275677b # release 1.89.0
 )
 
-FetchContent_MakeAvailable(Boost)
+FetchContent_Declare(
+  LLVM
+  GIT_REPOSITORY https://github.com/llvm/llvm-project.git
+  GIT_TAG 8e2cd28cd4ba46613a46467b0c91b1cabead26cd # release 21.1.5
+)
+
+# Control which projects are enabled. For example, you may want to work
+# on clang or lldb by specifying -DLLVM_ENABLE_PROJECTS="clang;lldb".
+# bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libclc;lld;lldb;mlir;openmp;polly
+set(LLVM_ENABLE_PROJECTS "lld")
+
+# Control which targets are enabled. For example, you may only need to
+# enable your native target with, for example, -DLLVM_TARGETS_TO_BUILD=X86.
+set(LLVM_TARGETS_TO_BUILD "X86")
+
+# Enables code assertions. Defaults to ON if and only if CMAKE_BUILD_TYPE is Debug.
+set(LLVM_ENABLE_ASSERTIONS ON)
+
+# If enabled and building a debug or assert build,
+# the CMake build system will generate a Release build
+# tree to build a fully optimized tablegen for use during
+# the build. Enabling this option can significantly speed
+# up build times, especially when building LLVM in Debug configurations.
+set(LLVM_OPTIMIZED_TABLEGEN ON)
+
+FetchContent_MakeAvailable(Boost LLVM)
+
 
 set(INF_DEPS
+  gmp
+  mpfr
   Boost::graph
   Boost::unit_test_framework
   Boost::multiprecision
   Boost::log
+  LLVM
 )
 
 message(STATUS "Build: ${CMAKE_BUILD_TYPE}")

@@ -6,6 +6,11 @@
 
 # generated files
 config.hpp
+lexer.cpp
+parser.hpp
+parser.cpp
+location.hpp
+
 
 # Prerequisites
 *.d

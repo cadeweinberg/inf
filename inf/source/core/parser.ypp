@@ -18,41 +18,40 @@
 %{
 #include <boost/log/trivial.hpp>
 
-#include "core/compile.hpp"
-#include "core/lex.hpp"
-
-static void yyerror(lexer *lexer, context *context, char const *msg);
+Parser::symbol_type yylex();
 %}
 
 %require "3.8"
 %language "c++"
 %locations
 %header
+%define parse.trace
+%define parse.assert
+%define parse.error detailed
+%define parse.lac full
 %define lr.type ielr
-%define api.namespace {inf}
-%define api.value.type {operand}
-%define api.location.type {location}
+%define api.token.prefix {TOK_}
+%define api.value.type {inf::Ast::Ptr}
+%define api.parser.class {Parser}
+%define api.location.include {<imr/location.hpp>}
 
 %code requires {
-#include "core/lex.hpp"
+#include "core/lexer.hpp"
 #include "env/context.hpp"
-#include "imr/operand.hpp"
-#include "imr/location.hpp"
+#include "imr/ast.hpp"
 }
 
-%param {lexer *lexer}
-%parse-param{context *context}
-
-%token ';' '(' ')'
+%token SEMICOLON LPAREN RPAREN
 %token INTEGER
-%left '+' '-'
-%left '*' '/' '%'
+%left PLUS MINUS
+%left STAR FSLASH PERCENT
+%token EOF
 
 %%
 
 input:
       %empty
-    | expression ';' { $$ = $1; }
+    | expression SEMICOLON { $$ = $1; }
     ;
 
 expression:
@@ -62,12 +61,12 @@ expression:
 
 infix:
        primary
-     | infix '+' infix { $$ = compile_add($1, $3, context); }
-     | infix '-' infix { $$ = compile_sub($1, $3, context); }
-     | infix '*' infix { $$ = compile_mul($1, $3, context); }
-     | infix '/' infix { $$ = compile_div($1, $3, context); }
-     | infix '%' infix { $$ = compile_mod($1, $3, context); }
-     | '(' infix ')' { $$ = $2; }
+     | infix PLUS    infix { $$ = inf::Ast::add($1, $3); }
+     | infix MINUS   infix { $$ = inf::Ast::subtract($1, $3); }
+     | infix STAR    infix { $$ = inf::Ast::multiply($1, $3); }
+     | infix FSLASH  infix { $$ = inf::Ast::divide($1, $3); }
+     | infix PERCENT infix { $$ = inf::Ast::modulo($1, $3); }
+     | LPAREN infix RPAREN { $$ = $2; }
      ;
 
 primary:
@@ -76,6 +75,6 @@ primary:
 
 %%
 
-static void yyerror(lexer *lexer, context *context, char const *msg) {
-    BOOST_LOG_TRIVIAL(error) << msg;
+void Parser::error(Parser::location_type const &loc, std::string const &msg) {
+  BOOST_LOG_TRIVIAL(error) << "[" << loc << "]" << msg;
 }

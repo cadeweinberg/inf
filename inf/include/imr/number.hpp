@@ -14,20 +14,17 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
-#ifndef INF_IMR_LOCAL_HPP
-#define INF_IMR_LOCAL_HPP
+#ifndef INF_IMR_NUMBER_HPP
+#define INF_IMR_NUMBER_HPP
 
-#include "imr/label.hpp"
-#include "imr/type.hpp"
+#include "boost/multiprecision/gmp.hpp"
+#include "boost/multiprecision/mpc.hpp"
 
 namespace inf {
-struct local {
-    label     m_label;
-    type::ptr m_type;
+using Integer = boost::multiprecision::mpz_int;
+using Real = boost::multiprecision::mpf_float;
+using Complex = boost::multiprecision::mpc_complex;
+using Rational = boost::multiprecision::mpq_rational;
+}
 
-    local(label name, type::ptr kind) : m_label(name), m_type(kind) {}
-    local(type::ptr kind) : m_label(), m_type(kind) {}
-};
-} // namespace inf
-
-#endif // !INF_IMR_LOCAL_HPP
+#endif // !INF_IMR_NUMBER_HPP
