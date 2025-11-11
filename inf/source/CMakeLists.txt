@@ -66,7 +66,10 @@ set(INF_COMMON_SOURCE_FILES
     ${INF_SOURCE_DIR}/imr/value.cpp
 )
 add_library(inf_common ${INF_COMMON_SOURCE_FILES})
-target_include_directories(inf_common PUBLIC ${INF_INCLUDE_DIR})
+target_include_directories(inf_common PUBLIC
+    ${INF_INCLUDE_DIR}
+    ${INF_INCLUDE_DIR}/core # for bison
+)
 target_compile_options(inf_common PUBLIC ${INF_COMPILE_OPTIONS})
 target_link_options(inf_common PUBLIC ${INF_LINK_OPTIONS})
 target_link_libraries(inf_common PUBLIC ${INF_DEPS})
@@ -81,6 +84,7 @@ target_link_libraries(inf PRIVATE inf_common)
 
 
 add_executable(inf_test
+    ${INF_TEST_DIR}/lexer.cpp
     ${INF_TEST_DIR}/main.cpp
 )
 target_include_directories(inf_test PRIVATE ${INF_INCLUDE_DIR})
@@ -89,8 +93,7 @@ target_link_options(inf_test PRIVATE ${INF_LINK_OPTIONS})
 target_link_libraries(inf_test PRIVATE inf_common)
 
 enable_testing()
-add_test(NAME lex COMMAND inf_test -t lex)
-add_test(NAME parse COMMAND inf_test -t parse)
+add_test(NAME lexer COMMAND inf_test -t lexer)
 
 
 

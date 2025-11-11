@@ -17,94 +17,110 @@
 #ifndef INF_CORE_LEX_HPP
 #define INF_CORE_LEX_HPP
 
-#include <string_view>
+#include <variant>
 
 #include "boost/assert.hpp"
 
 #include "env/context.hpp"
-#include "imr/ast.hpp"
 #include "imr/location.hpp"
+#include "imr/number.hpp"
 
 namespace yy {
 class Lexer {
-    char const   *buffer;
-    char const   *token;
-    char const   *marker;
-    char const   *cursor;
-    char const   *limit;
+    char const *buffer;
+    char const *token;
+    char const *marker;
+    char const *cursor;
+    char const *limit;
+    location    location_;
     inf::Context *context;
-    location      location_;
 
-    void up() {
-        char const *p = token;
-        while (p != cursor) {
-            switch (*p) {
-            case '\n':
-                location_.lines();
-                location_.end.column = 1;
-                break;
-            case '\t':
-            case '\r':
-            case ' ':
-            default:   location_.columns(); break;
-            }
-        }
-    }
+    void up();
 
   public:
     struct Token {
-        enum class Kind {
-            Error,
-            End,
+        struct Error { inf::ErrorList::Index index; };
+        struct End {};
+        struct Semicolon {};
+        struct LParen {};
+        struct RParen {};
+        struct Plus {};
+        struct Minus {};
+        struct Star {};
+        struct FSlash {};
+        struct Percent {};
 
-            Semicolon,
-            LParen,
-            RParen,
-            Plus,
-            Minus,
-            Star,
-            FSlash,
-            Percent,
+        using Variant = std::variant<End,
+                                     Error,
+                                     Semicolon,
+                                     LParen,
+                                     RParen,
+                                     Plus,
+                                     Minus,
+                                     Star,
+                                     FSlash,
+                                     Percent,
+                                     inf::Integer>;
+        Variant variant;
+        Token() : variant(End{}) {}
+        Token(Token &&token) : variant(std::move(token.variant)) {}
+        Token(Token const &token) : variant(token.variant) {}
+        template <class T> Token(T &&t) : variant(std::move(t)) {}
+        template <class T> Token(T const &t) : variant(t) {}
 
-            Integer,
-        } kind;
-        inf::Ast::Ptr data;
+        Token &operator=(Token &&other) {
+            if (&other == this) { return *this; }
 
-        static Token create(Kind kind, inf::Ast::Ptr data) {
-            return Token{kind, std::move(data)};
+            variant = std::move(other.variant);
+            return *this;
         }
 
-        static Token error(inf::Error error) {
-            return create(Kind::Error, inf::Ast::create(std::move(error)));
+        Token &operator=(Token const &other) {
+            if (&other == this) { return *this; }
+
+            variant = other.variant;
+            return *this;
         }
-        static Token end() { return create(Kind::End, {}); }
-        static Token semicolon() { return create(Kind::Semicolon, {}); }
-        static Token lparen() { return create(Kind::LParen, {}); }
-        static Token rparen() { return create(Kind::RParen, {}); }
-        static Token plus() { return create(Kind::Plus, {}); }
-        static Token minus() { return create(Kind::Minus, {}); }
-        static Token star() { return create(Kind::Star, {}); }
-        static Token fslash() { return create(Kind::FSlash, {}); }
-        static Token percent() { return create(Kind::Percent, {}); }
-        static Token integer(inf::Integer i) {
-            return create(Kind::Integer,
-                          inf::Ast::create(inf::Value{std::move(i)}));
+
+        template <class T> Token &operator=(T &&t) {
+            variant = std::move(t);
+            return *this;
         }
+
+        template <class T> Token &operator=(T const &t) {
+            variant = t;
+            return *this;
+        }
+
+        Variant       &get() noexcept { return variant; }
+        Variant const &get() const noexcept { return variant; }
+
+        template <class T> bool is() const noexcept {
+            return std::holds_alternative<T>(variant);
+        }
+
+        template <class T> T       &as() { return std::get<T>(variant); }
+        template <class T> T const &as() const { return std::get<T>(variant); }
     };
 
-    Lexer(inf::Context *context)
-        : buffer(nullptr), token(nullptr), cursor(nullptr), limit(nullptr),
-          context(context) {
-        BOOST_ASSERT(context != nullptr);
-    }
+    Lexer()
+        : buffer(nullptr), token(nullptr), cursor(nullptr), limit(nullptr) {}
 
     void set_view(std::string_view view) noexcept {
         buffer = token = cursor = view.data();
         limit                   = view.data() + view.length();
     }
 
+    location const &loc() const noexcept { return location_; }
+
     Token advance();
 };
+
+bool operator==(Lexer::Token const &a, Lexer::Token const &b);
+inline bool operator!=(Lexer::Token const &a, Lexer::Token const &b) {
+    return !(a == b);
+}
+
 } // namespace yy
 
 #endif // !INF_CORE_LEX_HPP

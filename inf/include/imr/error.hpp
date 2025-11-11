@@ -17,19 +17,74 @@
 #ifndef INF_IMR_ERROR_HPP
 #define INF_IMR_ERROR_HPP
 
+#include <exception>
 #include <ostream>
+#include <source_location>
+#include <sstream>
+#include <stacktrace>
 #include <string>
 
 #include "imr/location.hpp"
 
 namespace inf {
-struct Error {
-    std::string  message;
-    yy::location location;
+class Error : public std::exception {
+  public:
+    struct Internal {
+        std::source_location location;
+        std::stacktrace      trace;
+
+        static Internal
+        current(std::source_location location = std::source_location::current(),
+                std::stacktrace      trace    = std::stacktrace::current()) {
+            return {std::move(location), std::move(trace)};
+        }
+    };
+
+  private:
+    std::string m_message;
+
+  public:
+    Error() {}
+    Error(Error &&other) noexcept : m_message(std::move(other.m_message)) {}
+    Error(Error const &other) : m_message(other.m_message) {}
+    Error(std::string message) : m_message(std::move(message)) {}
+    Error(std::string message, yy::location location) {
+        std::stringstream stream;
+        stream << "@[" << location << "]\n" << message;
+        m_message = stream.str();
+    }
+
+    Error(std::string message, Internal internal) {
+        std::stringstream stream;
+        stream << internal.trace << "\n@[" << internal.location.file_name()
+               << ":" << internal.location.function_name() << ":"
+               << internal.location.line() << "." << internal.location.column()
+               << "]\n"
+               << message;
+        m_message = stream.str();
+    }
+
+    Error &operator=(Error &&other) noexcept {
+        if (this == &other) { return *this; }
+        m_message = std::move(other.m_message);
+        return *this;
+    }
+
+    Error &operator=(Error const &other) {
+        if (this == &other) { return *this; }
+        m_message = other.m_message;
+        return *this;
+    }
+
+    char const *what() const noexcept override { return m_message.c_str(); }
+
+    std::string const &message() const noexcept { return m_message; }
+
+    friend std::ostream &operator<<(std::ostream &out, Error const &error);
 };
 
 inline std::ostream &operator<<(std::ostream &out, Error const &error) {
-    out << "[" << error.location << "] " << error.message;
+    out << error.m_message;
     return out;
 }
 } // namespace inf

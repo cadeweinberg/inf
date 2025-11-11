@@ -16,7 +16,7 @@
 # along with inf.  If not, see <http://www.gnu.org/licenses/>.
 cmake_minimum_required(VERSION 3.20)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+option(BUILD_DEPENDENCIES "Download and Build required Dependencies" OFF)
 
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
   set(INF_HOST_SYSTEM_LINUX true)
@@ -40,13 +40,18 @@ endif()
 set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 23)
 set(C_STANDARD_REQUIRED ON)
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 23)
 
 project(INF
     LANGUAGES C CXX ASM
     VERSION 0.0.1
-    DESCRIPTION "A Compiler"
+    DESCRIPTION "A Toy Compiler"
 )
+
+if (BUILD_DEPENDENCIES)
+  include(${PROJECT_SOURCE_DIR}/deps/CMakeLists.txt)
+  return()
+endif ()
 
 set(INF_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/inf/include)
 set(INF_SOURCE_DIR ${PROJECT_SOURCE_DIR}/inf/source)
@@ -83,50 +88,40 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GMP gmp)
 pkg_check_modules(MPFR mpfr)
 
-include(FetchContent)
-FetchContent_Declare(
-  Boost
-  GIT_REPOSITORY https://github.com/boostorg/boost.git
-  GIT_TAG ef7fea34711a189472893b88205b1dd3c275677b # release 1.89.0
+find_package(Boost 1.89.0 REQUIRED CONFIG CMAKE_FIND_ROOT_PATH_BOTH
+  COMPONENTS
+    unit_test_framework
+    multiprecision
+    log
 )
 
-FetchContent_Declare(
-  LLVM
-  GIT_REPOSITORY https://github.com/llvm/llvm-project.git
-  GIT_TAG 8e2cd28cd4ba46613a46467b0c91b1cabead26cd # release 21.1.5
+find_package(LLVM 21.1.5 REQUIRED CONFIG CMAKE_FIND_ROOT_PATH_BOTH)
+
+set(INF_DEPS_INCLUDE_DIRS ${LLVM_INCLUDE_DIRS})
+separate_arguments(LLVM_DEFINITION_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+set(INF_COMPILE_DEFINITIONS ${LLVM_DEFINITION_LIST})
+
+llvm_map_components_to_libnames(LLVM_LIBS
+  support
+  core
+  x86asmparser
+  x86codegen
+  x86desc
+  x86disassembler
+  x86info
+  x86targetmca
 )
-
-# Control which projects are enabled. For example, you may want to work
-# on clang or lldb by specifying -DLLVM_ENABLE_PROJECTS="clang;lldb".
-# bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libclc;lld;lldb;mlir;openmp;polly
-set(LLVM_ENABLE_PROJECTS "lld")
-
-# Control which targets are enabled. For example, you may only need to
-# enable your native target with, for example, -DLLVM_TARGETS_TO_BUILD=X86.
-set(LLVM_TARGETS_TO_BUILD "X86")
-
-# Enables code assertions. Defaults to ON if and only if CMAKE_BUILD_TYPE is Debug.
-set(LLVM_ENABLE_ASSERTIONS ON)
-
-# If enabled and building a debug or assert build,
-# the CMake build system will generate a Release build
-# tree to build a fully optimized tablegen for use during
-# the build. Enabling this option can significantly speed
-# up build times, especially when building LLVM in Debug configurations.
-set(LLVM_OPTIMIZED_TABLEGEN ON)
-
-FetchContent_MakeAvailable(Boost LLVM)
-
 
 set(INF_DEPS
   gmp
   mpfr
-  Boost::graph
+  Boost::boost
   Boost::unit_test_framework
   Boost::multiprecision
   Boost::log
-  LLVM
+  ${LLVM_LIBS}
 )
+
 
 message(STATUS "Build: ${CMAKE_BUILD_TYPE}")
 message(STATUS "C compiler: ${CMAKE_C_COMPILER_ID}")

@@ -17,8 +17,7 @@
 
 %{
 #include <boost/log/trivial.hpp>
-
-Parser::symbol_type yylex();
+#include <boost/assert.hpp>
 %}
 
 %require "3.8"
@@ -31,36 +30,49 @@ Parser::symbol_type yylex();
 %define parse.lac full
 %define lr.type ielr
 %define api.token.prefix {TOK_}
-%define api.value.type {inf::Ast::Ptr}
+%define api.token.raw
+%define api.token.constructor
+%define api.value.type variant
+%define api.value.automove
 %define api.parser.class {Parser}
 %define api.location.include {<imr/location.hpp>}
+
+%param {Lexer *lexer}
+%param {inf::Context *ctx}
 
 %code requires {
 #include "core/lexer.hpp"
 #include "env/context.hpp"
 #include "imr/ast.hpp"
+#include "imr/number.hpp"
 }
 
-%token SEMICOLON LPAREN RPAREN
-%token INTEGER
-%left PLUS MINUS
-%left STAR FSLASH PERCENT
-%token EOF
+%code {
+namespace yy {
+Parser::symbol_type yylex(Lexer *lexer, inf::Context *ctx);
+}
+}
+
+%token <inf::Ast::Ptr> SEMICOLON LPAREN RPAREN
+%token <inf::Ast::Ptr> INTEGER
+%left <inf::Ast::Ptr> PLUS MINUS
+%left <inf::Ast::Ptr> STAR FSLASH PERCENT
+
+%nterm <inf::Ast::Ptr> input expression infix prefix primary
 
 %%
 
 input:
-      %empty
+      %empty { $$ = inf::Ast::create(); }
     | expression SEMICOLON { $$ = $1; }
     ;
 
 expression:
-      infix { $$ = $1; }
-    | error { $$ = $1; yyerrok; }
+      infix
     ;
 
 infix:
-       primary
+       prefix
      | infix PLUS    infix { $$ = inf::Ast::add($1, $3); }
      | infix MINUS   infix { $$ = inf::Ast::subtract($1, $3); }
      | infix STAR    infix { $$ = inf::Ast::multiply($1, $3); }
@@ -69,12 +81,77 @@ infix:
      | LPAREN infix RPAREN { $$ = $2; }
      ;
 
+prefix:
+       primary
+     | MINUS prefix { $$ = inf::Ast::negate($2); }
+     ;
+
 primary:
       INTEGER
     ;
 
 %%
 
+namespace yy {
 void Parser::error(Parser::location_type const &loc, std::string const &msg) {
-  BOOST_LOG_TRIVIAL(error) << "[" << loc << "]" << msg;
+  BOOST_LOG_TRIVIAL(error) << "@[" << loc << "]" << msg;
+}
+
+namespace detail {
+struct TokenConversionVisitor {
+    Lexer *lexer;
+    inf::Context *ctx;
+
+    Parser::symbol_type operator()(Lexer::Token::Error &error_token) {
+        inf::Error const &error = ctx->error_at(error_token.index);
+        throw Parser::syntax_error(lexer->loc(), error.message());
+    }
+
+    Parser::symbol_type operator()(Lexer::Token::End const &) {
+        return Parser::make_YYEOF(lexer->loc());
+    }
+
+    Parser::symbol_type operator()(Lexer::Token::Semicolon const &) {
+        return Parser::make_SEMICOLON(inf::Ast::create(), lexer->loc());
+    }
+
+    Parser::symbol_type operator()(Lexer::Token::LParen const &) {
+        return Parser::make_LPAREN(inf::Ast::create(), lexer->loc());
+    }
+
+    Parser::symbol_type operator()(Lexer::Token::RParen const &) {
+        return Parser::make_RPAREN(inf::Ast::create(), lexer->loc());
+    }
+
+    Parser::symbol_type operator()(Lexer::Token::Plus const &) {
+        return Parser::make_PLUS(inf::Ast::create(), lexer->loc());
+    }
+
+    Parser::symbol_type operator()(Lexer::Token::Minus const &) {
+        return Parser::make_MINUS(inf::Ast::create(), lexer->loc());
+    }
+
+    Parser::symbol_type operator()(Lexer::Token::Star const &) {
+        return Parser::make_STAR(inf::Ast::create(), lexer->loc());
+    }
+
+    Parser::symbol_type operator()(Lexer::Token::FSlash const &) {
+        return Parser::make_FSLASH(inf::Ast::create(), lexer->loc());
+    }
+
+    Parser::symbol_type operator()(Lexer::Token::Percent const &) {
+        return Parser::make_PERCENT(inf::Ast::create(), lexer->loc());
+    }
+
+    Parser::symbol_type operator()(inf::Integer const &integer) {
+        return Parser::make_INTEGER(inf::Ast::create(integer), lexer->loc());
+    }
+};
+}
+
+Parser::symbol_type yylex(Lexer *lexer, inf::Context *ctx) {
+  Lexer::Token token = lexer->advance();
+  detail::TokenConversionVisitor visitor{lexer, ctx};
+  return std::visit(visitor, token.variant);
+}
 }

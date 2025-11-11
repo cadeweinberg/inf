@@ -23,12 +23,14 @@
 #include "imr/label.hpp"
 #include "imr/type.hpp"
 #include "imr/value.hpp"
-#include "imr/error.hpp"
 
 namespace inf {
-class Ast {
+class Ast : public std::enable_shared_from_this<Ast> {
+private:
+    struct Private { explicit Private() = default; };
+
   public:
-    using Ptr = std::unique_ptr<Ast>;
+    using Ptr = std::shared_ptr<Ast>;
 
     struct Binding {
         Label     label;
@@ -57,16 +59,16 @@ class Ast {
         Ptr right;
     };
 
-    using Variant = std::variant<Value, Binding, Unop, Binop, Error>;
+    using Variant = std::variant<Value, Binding, Unop, Binop>;
 
   private:
     Variant variant;
 
   public:
-    Ast() : variant() {}
-    Ast(Ast &&ast) : variant(std::move(ast.variant)) {}
+    Ast(Private) : variant() {}
+    Ast(Private, Ast &&ast) : variant(std::move(ast.variant)) {}
     Ast(Ast const &ast) = delete;
-    template <class T> Ast(T &&t) : variant(std::move(t)) {}
+    template <class T> Ast(Private, T &&t) : variant(std::move(t)) {}
     template <class T> Ast(T const &t) = delete;
 
     template <class T> Ast &operator=(T &&t) {
@@ -95,8 +97,16 @@ class Ast {
     template <class T> T       &as() { return std::get<T>(variant); }
     template <class T> T const &as() const { return std::get<T>(variant); }
 
+    static Ptr create() {
+        return std::make_shared<Ast>(Private{}, std::monostate{});
+    }
+
     template <class T> static Ptr create(T &&t) {
-        return std::make_unique<Ast>(std::move(t));
+        return std::make_shared<Ast>(Private{}, std::move(t));
+    }
+
+    template <class T> static Ptr create(T const &t) {
+        return std::make_shared<Ast>(Private{}, t);
     }
 
     static Ptr binding(Label label, Type::Ptr type, Ptr expression) {
