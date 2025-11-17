@@ -20,22 +20,25 @@
 #include <memory>
 #include <variant>
 
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Value.h"
+
 #include "imr/label.hpp"
-#include "imr/type.hpp"
-#include "imr/value.hpp"
 
 namespace inf {
 class Ast : public std::enable_shared_from_this<Ast> {
-private:
-    struct Private { explicit Private() = default; };
+  private:
+    struct Private {
+        explicit Private() = default;
+    };
 
   public:
     using Ptr = std::shared_ptr<Ast>;
 
     struct Binding {
-        Label     label;
-        Type::Ptr type;
-        Ptr       expression;
+        Label             label;
+        llvm::Type const *type;
+        Ptr               expression;
     };
 
     struct Unop {
@@ -59,7 +62,7 @@ private:
         Ptr right;
     };
 
-    using Variant = std::variant<Value, Binding, Unop, Binop>;
+    using Variant = std::variant<llvm::Value *, Binding, Unop, Binop>;
 
   private:
     Variant variant;
@@ -109,7 +112,7 @@ private:
         return std::make_shared<Ast>(Private{}, t);
     }
 
-    static Ptr binding(Label label, Type::Ptr type, Ptr expression) {
+    static Ptr binding(Label label, llvm::Type const *type, Ptr expression) {
         return create(Binding{label, std::move(type), std::move(expression)});
     }
 

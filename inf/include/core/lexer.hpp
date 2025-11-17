@@ -21,9 +21,10 @@
 
 #include "boost/assert.hpp"
 
+#include "llvm/IR/Constants.h"
+
 #include "env/context.hpp"
 #include "imr/location.hpp"
-#include "imr/number.hpp"
 
 namespace yy {
 class Lexer {
@@ -49,6 +50,7 @@ class Lexer {
         struct Star {};
         struct FSlash {};
         struct Percent {};
+        struct Integer { llvm::ConstantInt *integer; };
 
         using Variant = std::variant<End,
                                      Error,
@@ -60,7 +62,7 @@ class Lexer {
                                      Star,
                                      FSlash,
                                      Percent,
-                                     inf::Integer>;
+                                     Integer>;
         Variant variant;
         Token() : variant(End{}) {}
         Token(Token &&token) : variant(std::move(token.variant)) {}

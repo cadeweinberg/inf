@@ -18,38 +18,32 @@
 #define INF_ENV_CONTEXT_HPP
 
 #include "env/error_list.hpp"
-#include "env/string_interner.hpp"
 #include "imr/label.hpp"
+
+#include "llvm/ADT/StringSet.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Target/TargetMachine.h"
 
 namespace inf {
 class Context {
-    StringInterner string_interner;
-    ErrorList      error_list;
+    llvm::TargetMachine *llvm_target_machine;
+    llvm::LLVMContext    llvm_context;
+    llvm::Module         llvm_module;
+    llvm::IRBuilder<>    llvm_ir_builder;
+    llvm::StringSet<>    string_interner;
+    ErrorList            error_list;
+
+    static std::string host_cpu_features() noexcept;
 
   public:
-    ErrorList::size_type error(std::string message) {
-        error_list.emplace_back(std::move(message));
-        return error_list.size() - 1;
-    }
+    Context(Label module_name);
 
-    ErrorList::size_type error(std::string message, yy::location location) {
-        error_list.emplace_back(std::move(message), std::move(location));
-        return error_list.size() - 1;
-    }
+    ErrorList::size_type error(Error error);
+    Error const         &error_at(ErrorList::size_type index) const;
 
-    ErrorList::size_type error(std::string message, Error::Internal location) {
-        error_list.emplace_back(std::move(message), std::move(location));
-        return error_list.size() - 1;
-    }
-
-    Error const &error_at(ErrorList::size_type index) const {
-        return error_list.at(index);
-    }
-
-    Label intern_string(std::string string) {
-        auto [iter, cons] = string_interner.emplace(std::move(string));
-        return {*iter};
-    }
+    Label intern_string(llvm::StringRef string);
 };
 } // namespace inf
 

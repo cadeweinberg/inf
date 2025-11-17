@@ -17,10 +17,10 @@
 #ifndef INF_IMR_LABEL_HPP
 #define INF_IMR_LABEL_HPP
 
-#include <string_view>
+#include "llvm/ADT/StringRef.h"
 
 namespace inf {
-using Label = std::string_view;
+using Label = llvm::StringRef;
 }
 
 #endif // !INF_IMR_LABEL_HPP

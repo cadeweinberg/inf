@@ -14,25 +14,9 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with inf.  If not, see <http://www.gnu.org/licenses/>.
+#ifndef INF_ENV_OPTIONS_HPP
+#define INF_ENV_OPTIONS_HPP
 
-#include "imr/value.hpp"
 
-namespace inf {
-namespace detail {
-struct ValueEqualityVisitor {
-    Value const *b;
 
-    bool operator()(Value::Nil const &) { return b->is<Value::Nil>(); }
-
-    bool operator()(Integer const &integer) {
-        if (!b->is<Value::Nil>()) { return false; }
-        return integer == b->as<Integer>();
-    }
-};
-} // namespace detail
-
-bool operator==(Value const &a, Value const &b) {
-    detail::ValueEqualityVisitor visitor{&b};
-    return std::visit(visitor, a.get());
-}
-} // namespace inf
+#endif // !INF_ENV_OPTIONS_HPP

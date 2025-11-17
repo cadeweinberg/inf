@@ -61,9 +61,6 @@ add_custom_command(
 set(INF_COMMON_SOURCE_FILES
     ${INF_SOURCE_DIR}/core/lexer.cpp
     ${INF_SOURCE_DIR}/core/parser.cpp
-
-    ${INF_SOURCE_DIR}/imr/type.cpp
-    ${INF_SOURCE_DIR}/imr/value.cpp
 )
 add_library(inf_common ${INF_COMMON_SOURCE_FILES})
 target_include_directories(inf_common PUBLIC
