@@ -6,10 +6,10 @@
 
 # generated files
 config.hpp
-lexer.cpp
-parser.hpp
-parser.cpp
-location.hpp
+**/core/lexer.cpp
+**/core/parser.hpp
+**/core/parser.cpp
+**/imr/location.hpp
 
 
 # Prerequisites

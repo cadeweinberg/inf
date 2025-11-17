@@ -39,7 +39,7 @@ class Lexer {
 
   public:
     struct Token {
-        struct Error { inf::ErrorList::Index index; };
+        struct Error { inf::ErrorList::size_type index; };
         struct End {};
         struct Semicolon {};
         struct LParen {};

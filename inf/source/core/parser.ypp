@@ -63,7 +63,7 @@ Parser::symbol_type yylex(Lexer *lexer, inf::Context *ctx);
 %%
 
 input:
-      %empty { $$ = inf::Ast::create(); }
+      %empty { $$ = nullptr; }
     | expression SEMICOLON { $$ = $1; }
     ;
 
@@ -112,35 +112,35 @@ struct TokenConversionVisitor {
     }
 
     Parser::symbol_type operator()(Lexer::Token::Semicolon const &) {
-        return Parser::make_SEMICOLON(inf::Ast::create(), lexer->loc());
+        return Parser::make_SEMICOLON(nullptr, lexer->loc());
     }
 
     Parser::symbol_type operator()(Lexer::Token::LParen const &) {
-        return Parser::make_LPAREN(inf::Ast::create(), lexer->loc());
+        return Parser::make_LPAREN(nullptr, lexer->loc());
     }
 
     Parser::symbol_type operator()(Lexer::Token::RParen const &) {
-        return Parser::make_RPAREN(inf::Ast::create(), lexer->loc());
+        return Parser::make_RPAREN(nullptr, lexer->loc());
     }
 
     Parser::symbol_type operator()(Lexer::Token::Plus const &) {
-        return Parser::make_PLUS(inf::Ast::create(), lexer->loc());
+        return Parser::make_PLUS(nullptr, lexer->loc());
     }
 
     Parser::symbol_type operator()(Lexer::Token::Minus const &) {
-        return Parser::make_MINUS(inf::Ast::create(), lexer->loc());
+        return Parser::make_MINUS(nullptr, lexer->loc());
     }
 
     Parser::symbol_type operator()(Lexer::Token::Star const &) {
-        return Parser::make_STAR(inf::Ast::create(), lexer->loc());
+        return Parser::make_STAR(nullptr, lexer->loc());
     }
 
     Parser::symbol_type operator()(Lexer::Token::FSlash const &) {
-        return Parser::make_FSLASH(inf::Ast::create(), lexer->loc());
+        return Parser::make_FSLASH(nullptr, lexer->loc());
     }
 
     Parser::symbol_type operator()(Lexer::Token::Percent const &) {
-        return Parser::make_PERCENT(inf::Ast::create(), lexer->loc());
+        return Parser::make_PERCENT(nullptr, lexer->loc());
     }
 
     Parser::symbol_type operator()(inf::Integer const &integer) {

@@ -27,22 +27,22 @@ class Context {
     ErrorList      error_list;
 
   public:
-    ErrorList::Index error(std::string message) {
+    ErrorList::size_type error(std::string message) {
         error_list.emplace_back(std::move(message));
         return error_list.size() - 1;
     }
 
-    ErrorList::Index error(std::string message, yy::location location) {
+    ErrorList::size_type error(std::string message, yy::location location) {
         error_list.emplace_back(std::move(message), std::move(location));
         return error_list.size() - 1;
     }
 
-    ErrorList::Index error(std::string message, Error::Internal location) {
+    ErrorList::size_type error(std::string message, Error::Internal location) {
         error_list.emplace_back(std::move(message), std::move(location));
         return error_list.size() - 1;
     }
 
-    Error const &error_at(ErrorList::Index index) const {
+    Error const &error_at(ErrorList::size_type index) const {
         return error_list.at(index);
     }
 

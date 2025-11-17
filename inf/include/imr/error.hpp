@@ -26,6 +26,13 @@
 
 #include "imr/location.hpp"
 
+inline std::ostream &operator<<(std::ostream               &out,
+                                std::source_location const &location) {
+    out << location.file_name() << ":" << location.function_name() << ":"
+        << location.line() << "." << location.column();
+    return out;
+}
+
 namespace inf {
 class Error : public std::exception {
   public:
@@ -49,19 +56,16 @@ class Error : public std::exception {
     Error(Error const &other) : m_message(other.m_message) {}
     Error(std::string message) : m_message(std::move(message)) {}
     Error(std::string message, yy::location location) {
-        std::stringstream stream;
+        std::ostringstream stream;
         stream << "@[" << location << "]\n" << message;
-        m_message = stream.str();
+        m_message = std::move(stream).str();
     }
 
     Error(std::string message, Internal internal) {
-        std::stringstream stream;
-        stream << internal.trace << "\n@[" << internal.location.file_name()
-               << ":" << internal.location.function_name() << ":"
-               << internal.location.line() << "." << internal.location.column()
-               << "]\n"
+        std::ostringstream stream;
+        stream << internal.trace << "\n@[" << internal.location << "]\n"
                << message;
-        m_message = stream.str();
+        m_message = std::move(stream).str();
     }
 
     Error &operator=(Error &&other) noexcept {
@@ -74,6 +78,10 @@ class Error : public std::exception {
         if (this == &other) { return *this; }
         m_message = other.m_message;
         return *this;
+    }
+
+    static Error current(std::string message, Internal internal = Internal::current()) {
+        return {std::move(message), std::move(internal)};
     }
 
     char const *what() const noexcept override { return m_message.c_str(); }
